@@ -22,7 +22,7 @@ public class ShippingService {
         this.ventaRepository = ventaRepository;
     }
 
-    @KafkaListener(topics = "PaymentSuccesful", groupId = "shipping")
+    @KafkaListener(topics = "PaymentSuccessful", groupId = "shipping")
     public void handlePaymentSuccessful(PaymentSuccessfulEvent event) {
         Optional<Venta> ventaOpt = ventaRepository.findById(event.getOrderId());
 

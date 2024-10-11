@@ -3,6 +3,7 @@ package co.edu.unisabana.shipping;
 import co.edu.unisabana.shipping.events.OrderShippedEvent;
 import co.edu.unisabana.shipping.events.PaymentSuccessfulEvent;
 import co.edu.unisabana.shipping.entities.Venta;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,14 +24,21 @@ public class ShippingService {
     }
 
     @KafkaListener(topics = "PaymentSuccessful", groupId = "shipping")
-    public void handlePaymentSuccessful(PaymentSuccessfulEvent event) {
-        Optional<Venta> ventaOpt = ventaRepository.findById(event.getOrderId());
+    public void handlePaymentSuccessful(String event) {
+        ObjectMapper objectMapper = new ObjectMapper();
 
-        if (ventaOpt.isPresent()) {
-            Venta venta = ventaOpt.get();
-            processShipping(venta);
-        } else {
-            System.out.println("Venta no encontrada para el orderId: " + event.getOrderId());
+        try {
+            PaymentSuccessfulEvent paymentEvent = objectMapper.readValue(event, PaymentSuccessfulEvent.class);
+            Optional<Venta> ventaOpt = ventaRepository.findById(paymentEvent.getOrderId());
+
+            if (ventaOpt.isPresent()) {
+                Venta venta = ventaOpt.get();
+                processShipping(venta);
+            } else {
+                System.out.println("Venta no encontrada para el orderId: " + paymentEvent.getOrderId());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
